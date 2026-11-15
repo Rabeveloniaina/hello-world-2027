@@ -1,0 +1,82 @@
+name: HELLO WORLD! 2027 Pixel Art Automation
+
+on:
+  schedule:
+    # 03:15 UTC correspond à 06:15 du matin à Madagascar (Indian/Antananarivo, UTC+3)
+    # L'exécution à la minute :15 évite les pics de charge habituels de GitHub Actions à :00
+    - cron: '15 3 * * *'
+
+  workflow_dispatch:
+    inputs:
+      date:
+        description: 'Date de simulation (format YYYY-MM-DD, ex: 2027-02-01). Laisser vide pour la date du jour.'
+        required: false
+        default: ''
+        type: string
+      dry_run:
+        description: 'Mode simulation (aucun commit réel ne sera effectué)'
+        required: false
+        default: false
+        type: boolean
+
+concurrency:
+  group: hello-world-2027
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  pixel-art-contribution:
+    name: Traitement et publication du pixel art
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Récupération du code source
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Configuration de Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Vérification et génération de la contribution
+        id: make_contrib
+        run: |
+          ARGS=""
+          if [ -n "${{ github.event.inputs.date }}" ]; then
+            ARGS="$ARGS --date ${{ github.event.inputs.date }}"
+          fi
+          if [ "${{ github.event.inputs.dry_run }}" = "true" ]; then
+            ARGS="$ARGS --dry-run"
+          fi
+          python scripts/make_contribution.py $ARGS
+
+      - name: Commit et Push vers la branche principale
+        if: steps.make_contrib.outputs.committed == 'true'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Attribution du commit : utilise les variables GitHub si configurées,
+          # sinon utilise le compte GitHub de l'acteur pour que les contributions
+          # s'affichent correctement sur son profil utilisateur.
+          GIT_USER_NAME: ${{ vars.GIT_USER_NAME || github.actor }}
+          GIT_USER_EMAIL: ${{ vars.GIT_USER_EMAIL || format('{0}+{1}@users.noreply.github.com', github.actor_id, github.actor) }}
+        run: |
+          echo "Configuration de l'identité Git : $GIT_USER_NAME <$GIT_USER_EMAIL>"
+          git config user.name "$GIT_USER_NAME"
+          git config user.email "$GIT_USER_EMAIL"
+
+          # Synchronisation préventive en cas de commit concurrent
+          git pull --rebase origin main || true
+
+          # Ajout du fichier de contribution
+          git add contributions/
+
+          # Création du commit avec [skip ci] pour éviter les boucles inutiles
+          git commit -m "feat(contribution): pixel art contribution for ${{ steps.make_contrib.outputs.contribution_date }} [skip ci]"
+
+          # Envoi vers GitHub
+          git push origin main
+          echo "Contribution pour ${{ steps.make_contrib.outputs.contribution_date }} poussée avec succès !"

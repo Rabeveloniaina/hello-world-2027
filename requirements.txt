@@ -1,0 +1,5 @@
+# Dépendances du projet HELLO WORLD! 2027
+# Note : scripts/make_contribution.py et scripts/validate_dates.py n'utilisent
+# que la bibliothèque standard de Python 3.9+ (datetime, zoneinfo, json, argparse, pathlib).
+# Pillow est utilisé par scripts/preview_pixel_art.py pour générer l'image PNG haute résolution.
+Pillow>=10.0.0
