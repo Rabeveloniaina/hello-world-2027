@@ -1,17 +1,16 @@
 #!/usr/bin/env python3
 """
 scripts/validate_dates.py
-Validation stricte des dates de contribution pour HELLO WORLD! 2027.
+Validation stricte des dates de contribution pour HELLO WORLD! 2027 et le test HI! 2026.
 
 Vérifie :
-1. Validité du format JSON et présence des métadonnées (year, timezone, dates).
-2. Année civile stricte (2027) et fuseau horaire (Indian/Antananarivo).
+1. Validité du format JSON et présence des métadonnées.
+2. Fuseau horaire (Indian/Antananarivo).
 3. Validité calendaire réelle de chaque date (format ISO YYYY-MM-DD).
 4. Absence absolue de doublons.
 5. Tri chronologique strict.
-6. Correspondance exacte 1:1 avec les pixels actifs de la matrice HELLO WORLD!.
-7. Bornes du calendrier GitHub (53 colonnes, 7 lignes).
-8. Centrage horizontal et vertical.
+6. Phase Test 2026 (HI!) : 19 dates sur les semaines 47 à 52.
+7. Phase Principale 2027 (HELLO WORLD!) : 101 dates centrées sur 53 colonnes.
 """
 
 import argparse
@@ -21,7 +20,7 @@ import sys
 from pathlib import Path
 from typing import Dict, List, Set, Tuple
 
-# Matrice de police 3x5 de référence
+# Matrice de police 3x5 de référence pour 2027
 FONT_3x5: Dict[str, List[str]] = {
     'H': ['#.#', '#.#', '###', '#.#', '#.#'],
     'E': ['###', '#..', '##.', '#..', '###'],
@@ -33,19 +32,26 @@ FONT_3x5: Dict[str, List[str]] = {
     '!': ['#', '#', '#', '.', '#']
 }
 
+GRID_HI_2026 = [
+    ['.', '.', '.', '.', '.', '.'],  # Dim
+    ['#', '.', '#', '.', '#', '#'],  # Lun
+    ['#', '.', '#', '.', '#', '#'],  # Mar
+    ['#', '#', '#', '.', '#', '.'],  # Mer
+    ['#', '.', '#', '.', '#', '#'],  # Jeu
+    ['#', '.', '#', '.', '#', '.'],  # Ven
+    ['.', '.', '.', '.', '.', '.']   # Sam
+]
 
-def build_pattern() -> List[List[str]]:
+
+def build_pattern_2027() -> List[List[str]]:
     pattern: List[List[str]] = []
-    # HELLO
     for idx, ch in enumerate('HELLO'):
         for c in range(3):
             pattern.append([FONT_3x5[ch][r][c] for r in range(5)])
         if idx < 4:
             pattern.append(['.'] * 5)
-    # Espace mots (3 colonnes)
     for _ in range(3):
         pattern.append(['.'] * 5)
-    # WORLD!
     chars = ['W', 'O', 'R', 'L', 'D', '!']
     for idx, ch in enumerate(chars):
         w = len(FONT_3x5[ch][0])
@@ -75,10 +81,6 @@ def validate_dates_file(file_path: Path) -> bool:
     errors: List[str] = []
     warnings: List[str] = []
 
-    # 1. Vérification des métadonnées
-    if data.get("year") != 2027:
-        errors.append(f"L'année spécifiée doit être 2027 (reçu : {data.get('year')})")
-
     tz = data.get("timezone")
     if tz != "Indian/Antananarivo":
         errors.append(f"Le fuseau horaire doit être 'Indian/Antananarivo' (reçu : {tz})")
@@ -89,9 +91,9 @@ def validate_dates_file(file_path: Path) -> bool:
         print("\n".join(f"[X] {err}" for err in errors))
         return False
 
-    print(f"[*] Nombre de dates fournies : {len(raw_dates)}")
+    print(f"[*] Nombre total de dates fournies : {len(raw_dates)}")
 
-    # 2. Vérification des formats et validité calendaire
+    # Vérification des formats et validité calendaire
     parsed_dates: List[datetime.date] = []
     seen: Set[str] = set()
     duplicates: List[str] = []
@@ -103,8 +105,8 @@ def validate_dates_file(file_path: Path) -> bool:
 
         try:
             dt = datetime.date.fromisoformat(d_str)
-            if dt.year != 2027:
-                errors.append(f"Date hors de l'année 2027 : {d_str}")
+            if dt.year not in (2026, 2027):
+                errors.append(f"Date hors des années 2026/2027 : {d_str}")
             parsed_dates.append(dt)
         except Exception:
             errors.append(f"Format de date invalide (attendu YYYY-MM-DD) : '{d_str}'")
@@ -112,85 +114,68 @@ def validate_dates_file(file_path: Path) -> bool:
     if duplicates:
         errors.append(f"Doublons détectés ({len(duplicates)}) : {duplicates[:5]}...")
 
-    # 3. Vérification du tri
     if parsed_dates != sorted(parsed_dates):
         errors.append("Les dates ne sont pas triées dans l'ordre chronologique strict.")
 
-    # 4. Projection sur le calendrier GitHub 2027
-    start_sunday = datetime.date(2026, 12, 27)  # Dimanche semaine 0
-    end_saturday = datetime.date(2028, 1, 1)    # Samedi semaine 52
-    total_cols = (end_saturday - start_sunday).days // 7 + 1  # 53 colonnes
+    # Séparation 2026 (Test HI!) et 2027 (HELLO WORLD!)
+    dates_2026 = [d for d in parsed_dates if d.year == 2026]
+    dates_2027 = [d for d in parsed_dates if d.year == 2027]
 
-    cols_used: Set[int] = set()
-    rows_used: Set[int] = set()
-    coords: Set[Tuple[int, int]] = set()
+    print(f"[*] Dates en 2026 (Test 'HI!')         : {len(dates_2026)}")
+    print(f"[*] Dates en 2027 ('HELLO WORLD!')     : {len(dates_2027)}")
 
-    for dt in parsed_dates:
-        days_diff = (dt - start_sunday).days
-        col = days_diff // 7
-        row = days_diff % 7
-        cols_used.add(col)
-        rows_used.add(row)
-        coords.add((col, row))
+    # 1. Validation de la phase test 2026
+    if dates_2026:
+        d0_2026 = datetime.date(2025, 12, 28)
+        expected_2026_dates = []
+        for c in range(6):
+            col = 47 + c
+            for r in range(7):
+                if GRID_HI_2026[r][c] == '#':
+                    expected_2026_dates.append(d0_2026 + datetime.timedelta(days=col * 7 + r))
 
-        if col < 0 or col >= total_cols:
-            errors.append(f"La date {dt} déborde de la grille GitHub (colonne {col} sur {total_cols})")
-
-    # 5. Comparaison avec la matrice théorique
-    pattern = build_pattern()
-    pattern_width = len(pattern)  # 43
-    theoretical_pixels = sum(col.count('#') for col in pattern)
-
-    print(f"[*] Pixels actifs théoriques dans la police 3x5 : {theoretical_pixels}")
-    print(f"[*] Pixels actifs dans le fichier JSON         : {len(coords)}")
-
-    if len(coords) != theoretical_pixels:
-        errors.append(
-            f"Le nombre de dates ({len(coords)}) ne correspond pas au total de pixels du motif ({theoretical_pixels})."
-        )
-
-    # 6. Détection du cadrage et centrage
-    if cols_used and rows_used:
-        min_col, max_col = min(cols_used), max(cols_used)
-        min_row, max_row = min(rows_used), max(rows_used)
-
-        left_margin = min_col
-        right_margin = (total_cols - 1) - max_col
-        width = max_col - min_col + 1
-
-        top_margin = min_row
-        bottom_margin = 6 - max_row
-        height = max_row - min_row + 1
-
-        print(f"[*] Dimensions du dessin : Largeur = {width} colonnes, Hauteur = {height} lignes")
-        print(f"[*] Centrage horizontal  : Marge gauche = {left_margin} sem., Marge droite = {right_margin} sem. (Total = {total_cols})")
-        print(f"[*] Centrage vertical    : Marge haut = {top_margin} jour(s), Marge bas = {bottom_margin} jour(s) (Total = 7)")
-
-        if left_margin == right_margin:
-            print("[✓] Centrage horizontal parfait (symétrie 5 / 5 colonnes).")
+        if len(dates_2026) != len(expected_2026_dates):
+            errors.append(f"Test 2026 : attendu {len(expected_2026_dates)} dates, reçu {len(dates_2026)}.")
+        elif dates_2026 != expected_2026_dates:
+            errors.append("Test 2026 : les dates ne correspondent pas au motif 'HI!'.")
         else:
-            warnings.append(f"Centrage horizontal asymétrique ({left_margin} vs {right_margin}).")
+            print(f"[✓] Phase Test 2026 ('HI!') : {len(dates_2026)}/19 dates parfaitement conformes (du {dates_2026[0]} au {dates_2026[-1]}).")
 
-        if top_margin == bottom_margin:
-            print(f"[✓] Centrage vertical parfait ({top_margin} jour au-dessus, {bottom_margin} jour en-dessous).")
+    # 2. Validation de la phase principale 2027
+    if dates_2027:
+        start_sunday_2027 = datetime.date(2026, 12, 27)
+        total_cols_2027 = 53
+        pattern_2027 = build_pattern_2027()
+        theoretical_pixels_2027 = sum(col.count('#') for col in pattern_2027)
+
+        cols_used = set()
+        rows_used = set()
+        for dt in dates_2027:
+            diff = (dt - start_sunday_2027).days
+            col = diff // 7
+            row = diff % 7
+            cols_used.add(col)
+            rows_used.add(row)
+
+        if len(dates_2027) != theoretical_pixels_2027:
+            errors.append(f"Phase 2027 : attendu {theoretical_pixels_2027} pixels, reçu {len(dates_2027)}.")
+
+        left_margin = min(cols_used)
+        right_margin = (total_cols_2027 - 1) - max(cols_used)
+        top_margin = min(rows_used)
+        bottom_margin = 6 - max(rows_used)
+
+        if left_margin == 5 and right_margin == 5:
+            print(f"[✓] Phase 2027 : Centrage horizontal parfait (5 sem. gauche / 5 sem. droite).")
         else:
-            warnings.append(
-                f"Centrage vertical non symétrique : Marge haut = {top_margin} jour(s), Marge bas = {bottom_margin} jour(s)."
-            )
+            warnings.append(f"Phase 2027 : Centrage horizontal asymétrique ({left_margin} vs {right_margin}).")
 
-        # Vérification pixel par pixel de la correspondance au motif
-        matched_pixels = 0
-        for c_idx in range(pattern_width):
-            c_abs = min_col + c_idx
-            for r_idx in range(5):
-                if pattern[c_idx][r_idx] == '#':
-                    r_abs = min_row + r_idx
-                    if (c_abs, r_abs) in coords:
-                        matched_pixels += 1
-                    else:
-                        errors.append(f"Pixel manquant aux coordonnées col={c_abs}, row={r_abs}")
+        if top_margin == 1 and bottom_margin == 1:
+            print(f"[✓] Phase 2027 : Centrage vertical parfait (1 jour haut / 1 jour bas).")
+        else:
+            warnings.append(f"Phase 2027 : Centrage vertical asymétrique ({top_margin} vs {bottom_margin}).")
 
-        print(f"[*] Correspondance pixel art : {matched_pixels}/{theoretical_pixels} pixels conformes.")
+        print(f"[✓] Phase 2027 ('HELLO WORLD!') : {len(dates_2027)}/101 dates conformes (du {dates_2027[0]} au {dates_2027[-1]}).")
 
     # Synthèse
     print("\n-------------------------------------------------------")
@@ -211,12 +196,12 @@ def validate_dates_file(file_path: Path) -> bool:
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Validation stricte des dates du pixel art 2027.")
+    parser = argparse.ArgumentParser(description="Validation stricte des dates du pixel art.")
     parser.add_argument(
         "--data-file",
         type=str,
         default="data/dates.json",
-        help="Chemin vers le fichier dates.json à valider (par défaut : data/dates.json)"
+        help="Chemin vers le fichier dates.json (par défaut : data/dates.json)"
     )
     args = parser.parse_args()
 

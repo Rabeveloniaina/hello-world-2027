@@ -1,6 +1,6 @@
 # 🟩 HELLO WORLD! 2027 — GitHub Contribution Graph Pixel Art
 
-Système entièrement automatisé permettant de dessiner le texte **`HELLO WORLD!`** sur votre calendrier de contributions GitHub tout au long de l'année civile **2027**, via **GitHub Actions** et **Python 3.12**.
+Système entièrement automatisé permettant de dessiner le texte **`HELLO WORLD!`** sur votre calendrier de contributions GitHub tout au long de l'année civile **2027**, précédé du prologue de test **`HI!`** en fin d'année **2026**, via **GitHub Actions** et **Python 3.12**.
 
 Aucun serveur externe, aucun VPS, aucun coût et aucune intervention manuelle quotidienne ne sont requis. Votre ordinateur peut rester éteint.
 
@@ -11,21 +11,22 @@ Aucun serveur externe, aucun VPS, aucun coût et aucune intervention manuelle qu
 ## Sommaire
 
 1. [Fonctionnement du projet](#1-fonctionnement-du-projet)
-2. [Structure des fichiers](#2-structure-des-fichiers)
-3. [Le Pixel Art & Analyse du centrage](#3-le-pixel-art--analyse-du-centrage)
-4. [Règles cruciales d'attribution des commits GitHub](#4-règles-cruciales-dattribution-des-commits-github)
-5. [Déploiement pas-à-pas sur GitHub](#5-déploiement-pas-à-pas-sur-github)
-6. [Configuration des permissions GitHub Actions](#6-configuration-des-permissions-github-actions)
-7. [Procédure de test immédiate (sans attendre 2027)](#7-procédure-de-test-immédiate-sans-attendre-2027)
-8. [Vérification sur le profil GitHub](#8-vérification-sur-le-profil-github)
-9. [Dépannage & Questions fréquentes (FAQ)](#9-dépannage--questions-fréquentes-faq)
-10. [Personnalisation (modifier le texte ou les dates)](#10-personnalisation-modifier-le-texte-ou-les-dates)
+2. [Phase Test 2026 : Le prologue 'HI!'](#2-phase-test-2026--le-prologue-hi)
+3. [Structure des fichiers](#3-structure-des-fichiers)
+4. [Le Pixel Art & Analyse du centrage 2027](#4-le-pixel-art--analyse-du-centrage-2027)
+5. [Règles cruciales d'attribution des commits GitHub](#5-règles-cruciales-dattribution-des-commits-github)
+6. [Déploiement pas-à-pas sur GitHub](#6-déploiement-pas-à-pas-sur-github)
+7. [Configuration des permissions GitHub Actions](#7-configuration-des-permissions-github-actions)
+8. [Procédure de test immédiate (sans attendre 2027)](#8-procédure-de-test-immédiate-sans-attendre-2027)
+9. [Vérification sur le profil GitHub](#9-vérification-sur-le-profil-github)
+10. [Dépannage & Questions fréquentes (FAQ)](#10-dépannage--questions-fréquentes-faq)
+11. [Personnalisation (modifier le texte ou les dates)](#11-personnalisation-modifier-le-texte-ou-les-dates)
 
 ---
 
 ## 1. Fonctionnement du projet
 
-Chaque jour de l'année civile 2027, le robot GitHub Actions se réveille automatiquement :
+Chaque jour de l'année civile 2027 (et dès novembre-décembre 2026 pour le test), le robot GitHub Actions se réveille automatiquement :
 
 ```mermaid
 flowchart TD
@@ -47,7 +48,29 @@ flowchart TD
 
 ---
 
-## 2. Structure des fichiers
+## 2. Phase Test 2026 : Le prologue 'HI!'
+
+Pour tester le système en conditions réelles sans attendre 2027, le motif **`HI!`** a été programmé sur les 6 dernières semaines de l'année 2026 (du **23 novembre au 31 décembre 2026**, soit 19 contributions réelles) :
+
+```text
+            Sem. 47   Sem. 48   Sem. 49   Sem. 50   Sem. 51   Sem. 52
+Dim (Sun) |    ·         ·         ·         ·         ·         ·    |
+Lun (Mon) |    ■         ·         ■         ·         ■         ■    |  <- Commence le 23/11/2026 !
+Mar (Tue) |    ■         ·         ■         ·         ■         ■    |
+Mer (Wed) |    ■         ■         ■         ·         ■         ·    |
+Jeu (Thu) |    ■         ·         ■         ·         ■         ■    |  <- Point du ! le 31/12/2026
+Ven (Fri) |    ■         ·         ■         ·         ■         ·    |
+Sam (Sat) |    ·         ·         ·         ·         ·         ·    |
+               [------ H ------]   (espace)    [ I ]     [ ! ]
+```
+
+- **Début** : Lundi 23 novembre 2026 (pixel `#1/120`).
+- **Fin** : Jeudi 31 décembre 2026 (le point d'exclamation s'allume pour le Réveillon du Nouvel An !).
+- **Rendu** : Visible directement dans le coin inférieur droit de votre graphique de contributions 2026.
+
+---
+
+## 3. Structure des fichiers
 
 ```text
 hello-world-2027/
